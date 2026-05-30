@@ -1,0 +1,103 @@
+/* ─── Scan PO Page ───────────────────────────────────── */
+.scan-page { animation: fadeIn 0.3s ease; }
+
+.scan-upload {
+  border: 2px dashed var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 48px;
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  background: var(--gray-50);
+}
+
+.scan-upload:hover, .scan-upload.drag-over {
+  border-color: var(--primary-400);
+  background: var(--primary-50);
+}
+
+.scan-upload-icon { font-size: 3rem; margin-bottom: 12px; }
+.scan-upload h3 { margin-bottom: 6px; font-weight: 600; }
+.scan-upload p { color: var(--text-tertiary); font-size: 0.875rem; }
+
+.scan-file-info {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  text-align: left;
+}
+
+.scan-preview {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+}
+
+.scan-file-info h3 { font-size: 0.9375rem; margin-bottom: 4px; }
+.scan-file-info p { font-size: 0.8125rem; color: var(--text-tertiary); margin-bottom: 8px; }
+
+/* Stats bar */
+.scan-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.scan-stat {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.scan-stat span:last-child { font-size: 0.75rem; color: var(--text-tertiary); font-weight: 500; }
+.scan-stat-num { font-size: 1.5rem; font-weight: 800; color: var(--text-primary); }
+.scan-stat-green { color: var(--success-500); }
+.scan-stat-yellow { color: var(--warning-500); }
+.scan-stat-red { color: var(--danger-500); }
+
+/* Raw text */
+.scan-raw-text {
+  background: var(--gray-50);
+  padding: 16px;
+  border-radius: var(--radius-md);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  max-height: 200px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin-top: 8px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  color: var(--text-secondary);
+}
+
+/* Unmatched row */
+.scan-row-unmatched { background: rgba(234, 179, 8, 0.06); }
+
+/* Suggestions */
+.scan-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+/* Create section */
+.scan-create-section {
+  margin-top: 16px;
+  background: linear-gradient(135deg, var(--primary-50), var(--gray-50));
+  border: 1.5px solid var(--primary-200);
+}
+
+@media (max-width: 768px) {
+  .scan-stats { grid-template-columns: repeat(2, 1fr); }
+  .scan-upload { padding: 32px 16px; }
+}

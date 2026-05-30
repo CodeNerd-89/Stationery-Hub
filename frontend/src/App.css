@@ -1,0 +1,32 @@
+/* ─── App Layout ─────────────────────────────────────── */
+
+/* Main Layout (public pages) */
+.main-layout {
+  min-height: 100vh;
+}
+
+.main-content {
+  margin-top: var(--navbar-height);
+  padding: 24px;
+  max-width: var(--max-width);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Admin Layout (dashboard pages) */
+.admin-layout {
+  min-height: 100vh;
+}
+
+.admin-content {
+  margin-top: var(--navbar-height);
+  padding: 24px;
+  transition: margin-left var(--transition-slow);
+}
+
+/* When sidebar is open on desktop */
+@media (min-width: 1024px) {
+  .admin-content.sidebar-active {
+    margin-left: var(--sidebar-width);
+  }
+}

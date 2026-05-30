@@ -1,0 +1,131 @@
+/* ─── Quotation Builder ──────────────────────────────── */
+.qb-page { animation: fadeIn 0.3s ease; }
+
+.qb-layout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 20px;
+  align-items: start;
+}
+
+.qb-product-search {
+  display: flex;
+  gap: 12px;
+  position: relative;
+}
+
+.qb-dropdown {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--bg-primary);
+  box-shadow: var(--shadow-lg);
+  max-height: 280px;
+  overflow-y: auto;
+  margin-top: 8px;
+}
+
+.qb-dropdown-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  border-bottom: 1px solid var(--gray-50);
+}
+
+.qb-dropdown-item:last-child { border-bottom: none; }
+.qb-dropdown-item:hover { background: var(--primary-50); }
+.qb-dropdown-item strong { font-size: 0.875rem; }
+
+.qb-dropdown-sku {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  margin-left: 8px;
+  font-family: monospace;
+}
+
+.qb-dropdown-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.qb-dropdown-price { font-weight: 700; font-size: 0.875rem; color: var(--primary-600); }
+.qb-dropdown-stock { font-size: 0.6875rem; color: var(--text-tertiary); }
+
+/* New customer inline form */
+.qb-new-customer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-color);
+}
+
+.qb-new-customer .form-input { padding: 8px 10px; font-size: 0.8125rem; }
+
+/* Totals */
+.qb-totals { padding: 16px !important; }
+
+.qb-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 0.9375rem;
+  color: var(--text-secondary);
+}
+
+.qb-grand-total {
+  border-top: 2px solid var(--border-color);
+  margin-top: 8px;
+  padding-top: 12px;
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: var(--primary-600);
+}
+
+/* Actions */
+.qb-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+/* ─── Number Input Fix ────────────────────────────────── */
+.qb-page input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.qb-page input[type="number"]::-webkit-outer-spin-button,
+.qb-page input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.qb-qty-input {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+/* Consistent table input styling */
+.qb-page .table .form-input {
+  border-color: var(--gray-200);
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.qb-page .table .form-input:focus {
+  border-color: var(--primary-400);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+}
+
+@media (max-width: 1024px) {
+  .qb-layout {
+    grid-template-columns: 1fr;
+  }
+}

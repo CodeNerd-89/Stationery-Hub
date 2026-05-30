@@ -1,0 +1,166 @@
+.admin-users-page {
+  animation: fadeIn 0.3s ease;
+}
+
+.filters-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.filters-bar .search-bar {
+  flex: 1;
+  min-width: 250px;
+}
+
+/* User info cell */
+.user-info-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background: var(--primary-100);
+  color: var(--primary-700);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  flex-shrink: 0;
+  text-transform: uppercase;
+}
+
+.user-info-cell strong {
+  font-size: 0.875rem;
+  display: block;
+}
+
+.user-email-sub {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  display: block;
+  margin-top: 1px;
+}
+
+/* Role badge variants */
+.role-admin {
+  background: var(--danger-100);
+  color: #b91c1c;
+}
+
+.role-staff {
+  background: var(--info-100);
+  color: #1d4ed8;
+}
+
+.role-customer {
+  background: var(--gray-100);
+  color: var(--gray-700);
+}
+
+/* Verified badges */
+.verified-yes {
+  background: var(--success-100);
+  color: #15803d;
+}
+
+.verified-no {
+  background: var(--warning-100);
+  color: #a16207;
+}
+
+/* Date display */
+.date-text {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+/* Role change modal */
+.role-change-modal .modal {
+  max-width: 400px;
+}
+
+.role-select-group {
+  margin: 16px 0;
+}
+
+.role-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  margin-bottom: 8px;
+}
+
+.role-option:hover {
+  border-color: var(--primary-300);
+  background: var(--primary-50);
+}
+
+.role-option.selected {
+  border-color: var(--primary-500);
+  background: var(--primary-50);
+}
+
+.role-option input[type="radio"] {
+  accent-color: var(--primary-500);
+  width: 16px;
+  height: 16px;
+}
+
+.role-option-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.role-option-desc {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  display: block;
+  margin-top: 2px;
+}
+
+/* Self badge */
+.self-indicator {
+  font-size: 0.6875rem;
+  background: var(--primary-100);
+  color: var(--primary-700);
+  padding: 1px 6px;
+  border-radius: var(--radius-full);
+  margin-left: 6px;
+  font-weight: 600;
+}
+
+/* Actions */
+.action-btns {
+  display: flex;
+  gap: 4px;
+}
+
+.danger-icon {
+  color: var(--danger-500) !important;
+}
+.danger-icon:hover {
+  background: var(--danger-100) !important;
+}
+
+@media (max-width: 768px) {
+  .filters-bar {
+    flex-direction: column;
+  }
+
+  .filters-bar .form-select {
+    max-width: 100% !important;
+  }
+}

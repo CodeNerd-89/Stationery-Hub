@@ -1,0 +1,130 @@
+.admin-products-page {
+  animation: fadeIn 0.3s ease;
+}
+
+.filters-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.filters-bar .search-bar {
+  flex: 1;
+  min-width: 250px;
+}
+
+/* Product name cell */
+.product-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.product-thumb {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: var(--gray-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.125rem;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.product-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.product-name-cell strong {
+  font-size: 0.875rem;
+  display: block;
+}
+
+.product-desc-preview {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  display: block;
+  margin-top: 2px;
+}
+
+/* SKU code */
+.sku-code {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.8125rem;
+  background: var(--gray-100);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  color: var(--primary-700);
+}
+
+.price-cell {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.stock-low {
+  color: var(--danger-500);
+  font-weight: 700;
+}
+
+.stock-ok {
+  color: var(--success-500);
+  font-weight: 600;
+}
+
+/* Actions */
+.action-btns {
+  display: flex;
+  gap: 4px;
+}
+
+.danger-icon {
+  color: var(--danger-500) !important;
+}
+.danger-icon:hover {
+  background: var(--danger-100) !important;
+}
+
+/* Form rows in modal */
+.form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* Checkbox */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  padding: 4px 0;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary-500);
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .form-row-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .filters-bar {
+    flex-direction: column;
+  }
+
+  .filters-bar .form-select {
+    max-width: 100% !important;
+  }
+}
