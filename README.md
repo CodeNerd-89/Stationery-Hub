@@ -1,6 +1,6 @@
 # 📦 Stationery Hub
 
-A production-ready web application for a stationery shop in Basundhara, Dhaka. Browse products, create AI-powered quotations from purchase orders, and manage your business.
+A production-ready web application for a stationery shop. Browse products, create AI-powered quotations from purchase orders, and manage your business.
 
 ## 🛠️ Tech Stack
 
