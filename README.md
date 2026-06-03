@@ -72,17 +72,11 @@ npm install
 npm run dev
 ```
 
-### 4. Access the App
-
-- Frontend: http://localhost:5173
-- Backend API: http://localhost:5000
-- API Health Check: http://localhost:5000/api/health
 
 ### Demo Accounts
 
 | Role | Email | Password |
 |------|-------|----------|
-| Admin | admin@stationeryhub.com | admin123 |
 | Staff | staff@stationeryhub.com | staff123 |
 | Customer | customer@example.com | customer123 |
 
