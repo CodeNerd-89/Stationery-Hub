@@ -1,0 +1,25 @@
+{
+  "name": "stationary-hub",
+  "version": "1.0.0",
+  "description": "A production-ready web application for a stationery shop in Basundhara, Dhaka. Browse products, create AI-powered quotations from purchase orders, and manage your business.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "db": "npx prisma studio --url=\"postgresql://postgres:tahmid1720@localhost:5432/stationaryhub?schema=public\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CodeNerd-89/Stationery-Hub.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/CodeNerd-89/Stationery-Hub/issues"
+  },
+  "homepage": "https://github.com/CodeNerd-89/Stationery-Hub#readme",
+  "dependencies": {
+    "dotenv": "^17.4.2"
+  }
+}

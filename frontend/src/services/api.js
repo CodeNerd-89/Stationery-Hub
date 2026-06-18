@@ -40,6 +40,9 @@ export const authAPI = {
   resendOTP: (data) => api.post('/auth/resend-otp', data),
   resendVerification: () => api.post('/auth/resend-verification'),
   getMe: () => api.get('/auth/me'),
+  forgotPassword: (data) => api.post('/auth/forgot-password', data),
+  verifyResetOTP: (data) => api.post('/auth/verify-reset-otp', data),
+  resetPassword: (data) => api.post('/auth/reset-password', data),
 };
 
 // ─── Products API ──────────────────────────────────────

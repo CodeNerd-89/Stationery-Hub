@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { productsAPI, categoriesAPI, wishlistAPI } from '../../services/api';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { HiOutlineSearch, HiOutlineShoppingCart, HiOutlinePlus, HiOutlineMinus, HiOutlineCheck, HiOutlineHeart, HiHeart } from 'react-icons/hi';
 import './Catalog.css';
@@ -19,6 +19,7 @@ const Catalog = () => {
   const { isAuthenticated } = useAuth();
   const [wishlistedIds, setWishlistedIds] = useState(new Set());
   const [wishlistLoading, setWishlistLoading] = useState(new Set());
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     fetchCategories();
@@ -28,6 +29,13 @@ const Catalog = () => {
   useEffect(() => {
     fetchProducts();
   }, [search, selectedCategory, page]);
+
+  useEffect(() => {
+    const categoryParam = searchParams.get('category');
+    if (categoryParam) {
+      setSelectedCategory(categoryParam);
+    }
+  }, [searchParams]);
 
   const fetchWishlistIds = async () => {
     try {

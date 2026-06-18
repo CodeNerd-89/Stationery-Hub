@@ -101,6 +101,10 @@ const Login = () => {
               </div>
             </div>
 
+            <div className="forgot-password-link" style={{ textAlign: 'right', marginBottom: 16 }}>
+              <Link to="/forgot-password" style={{ fontSize: '0.8125rem', color: 'var(--primary-500)', textDecoration: 'none', fontWeight: 500 }}>Forgot Password?</Link>
+            </div>
+
             <button
               type="submit"
               className="btn btn-primary btn-lg auth-submit"
@@ -115,20 +119,7 @@ const Login = () => {
             Don't have an account? <Link to="/register">Create one</Link>
           </p>
 
-          <div className="auth-demo-accounts">
-            <p className="demo-title">Demo Accounts</p>
-            <div className="demo-list">
-              <button className="demo-btn" onClick={() => { setEmail('admin@stationeryhub.com'); setPassword('admin123'); }}>
-                🛡️ Admin
-              </button>
-              <button className="demo-btn" onClick={() => { setEmail('staff@stationeryhub.com'); setPassword('staff123'); }}>
-                📋 Staff
-              </button>
-              <button className="demo-btn" onClick={() => { setEmail('customer@example.com'); setPassword('customer123'); }}>
-                👤 Customer
-              </button>
-            </div>
-          </div>
+
         </div>
       </div>
     </div>

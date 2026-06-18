@@ -12,6 +12,7 @@ import Sidebar from './components/layout/Sidebar';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import VerifyOTP from './pages/auth/VerifyOTP';
+import ForgotPassword from './pages/auth/ForgotPassword';
 
 // Catalog
 import Catalog from './pages/catalog/Catalog';
@@ -114,6 +115,7 @@ function App() {
           <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
           <Route path="/register" element={<GuestRoute><Register /></GuestRoute>} />
           <Route path="/verify-email" element={<VerifyOTP />} />
+          <Route path="/forgot-password" element={<GuestRoute><ForgotPassword /></GuestRoute>} />
 
           {/* Public pages */}
           <Route element={<MainLayout />}>

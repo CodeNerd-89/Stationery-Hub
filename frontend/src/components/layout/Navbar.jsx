@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
+import { categoriesAPI } from '../../services/api';
 import {
   HiOutlineMenu,
   HiOutlineX,
@@ -21,6 +22,20 @@ const Navbar = ({ onMenuToggle }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const { data } = await categoriesAPI.getAll();
+        setCategories(data.categories);
+      } catch (err) {
+        console.error('Failed to fetch categories:', err);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -54,6 +69,35 @@ const Navbar = ({ onMenuToggle }) => {
         </div>
 
         <div className="navbar-center">
+          {/* Categories Dropdown */}
+          <div className="nav-categories-dropdown"
+            onMouseEnter={() => setDropdownOpen(true)}
+            onMouseLeave={() => setDropdownOpen(false)}
+          >
+            <button className={`nav-link nav-categories-btn ${dropdownOpen ? 'nav-link-active' : ''}`}>
+              <HiOutlineViewGrid /> Categories
+            </button>
+            {dropdownOpen && (
+              <div className="categories-dropdown-panel">
+                <div className="categories-dropdown-header">
+                  <span>Browse by Category</span>
+                </div>
+                <div className="categories-dropdown-list">
+                  {categories.map(cat => (
+                    <Link
+                      key={cat.id}
+                      to={`/catalog?category=${cat.id}`}
+                      className="categories-dropdown-item"
+                      onClick={() => setDropdownOpen(false)}
+                    >
+                      <span className="cat-name">{cat.name}</span>
+                      <span className="cat-count">{cat._count?.products || 0}</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
           <Link to="/catalog" className={`nav-link ${location.pathname === '/catalog' ? 'nav-link-active' : ''}`}>
             <HiOutlineShoppingBag /> Browse Products
           </Link>
@@ -109,6 +153,7 @@ const Navbar = ({ onMenuToggle }) => {
               <Link to="/catalog" className="mobile-menu-link" onClick={closeMenu}>
                 <HiOutlineShoppingBag /> Browse Products
               </Link>
+
               <Link to="/cart" className="mobile-menu-link" onClick={closeMenu}>
                 <HiOutlineShoppingCart /> Cart
                 {totalItems > 0 && <span className="mobile-menu-badge">{totalItems}</span>}
