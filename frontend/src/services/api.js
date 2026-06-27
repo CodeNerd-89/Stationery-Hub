@@ -100,6 +100,8 @@ export const ordersAPI = {
 export const checkoutAPI = {
   placeOrder: (data) => api.post('/checkout', data),
   validatePromo: (data) => api.post('/checkout/validate-promo', data),
+  bkashCreate: (data) => api.post('/checkout/bkash/create', data),
+  bkashExecute: (data) => api.post('/checkout/bkash/execute', data),
 };
 
 // ─── Reviews API ───────────────────────────────────────

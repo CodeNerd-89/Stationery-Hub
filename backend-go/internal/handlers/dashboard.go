@@ -25,9 +25,9 @@ func (h *Handler) GetDashboardStats(w http.ResponseWriter, r *http.Request) {
 	h.DB.QueryRow(ctx, `SELECT COUNT(*) FROM users`).Scan(&userCount)
 	h.DB.QueryRow(ctx, `SELECT COUNT(*) FROM orders WHERE status = 'PENDING'`).Scan(&pendingOrderCount)
 
-	// Revenue from completed orders
+	// Revenue from all non-cancelled orders
 	var revenue *float64
-	h.DB.QueryRow(ctx, `SELECT SUM(total) FROM orders WHERE status = 'COMPLETED'`).Scan(&revenue)
+	h.DB.QueryRow(ctx, `SELECT SUM(total) FROM orders WHERE status NOT IN ('CANCELLED')`).Scan(&revenue)
 	revenueVal := 0.0
 	if revenue != nil {
 		revenueVal = *revenue

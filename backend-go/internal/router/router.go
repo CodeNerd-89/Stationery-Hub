@@ -136,6 +136,8 @@ func Setup(db *pgxpool.Pool, cfg *config.Config) chi.Router {
 			r.Use(auth)
 			r.Post("/", h.PlaceOrder)
 			r.Post("/validate-promo", h.ValidatePromo)
+			r.Post("/bkash/create", h.BkashCreatePayment)
+			r.Post("/bkash/execute", h.BkashExecutePayment)
 		})
 
 		// ── Reviews ──────────────────────────────────

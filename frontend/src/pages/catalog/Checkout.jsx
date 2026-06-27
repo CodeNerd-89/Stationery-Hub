@@ -19,6 +19,7 @@ const Checkout = () => {
     notes: '',
   });
 
+  const [paymentMethod, setPaymentMethod] = useState('COD');
   const [promoCode, setPromoCode] = useState('');
   const [promoResult, setPromoResult] = useState(null);
   const [isApplyingPromo, setIsApplyingPromo] = useState(false);
@@ -64,25 +65,45 @@ const Checkout = () => {
 
     try {
       setIsSubmitting(true);
-      
-      const orderData = {
-        items: cart.map(item => ({ productId: item.productId, quantity: item.quantity })),
-        shippingAddress: formData.shippingAddress,
-        shippingCity: formData.shippingCity,
-        shippingPhone: formData.shippingPhone,
-        notes: formData.notes,
-        promoCode: promoResult ? promoResult.code : null,
-        paymentMethod: 'COD' // Only COD supported for now as per plan
-      };
 
-      const { data } = await checkoutAPI.placeOrder(orderData);
-      
-      clearCart(true);
-      toast.success('🎉 Order placed successfully!');
-      navigate(`/order-confirmation/${data.order.id}`);
-      
+      if (paymentMethod === 'BKASH') {
+        // bKash flow: save order data, create payment, redirect to bKash
+        const orderData = {
+          items: cart.map(item => ({ productId: item.productId, quantity: item.quantity })),
+          shippingAddress: formData.shippingAddress,
+          shippingCity: formData.shippingCity,
+          shippingPhone: formData.shippingPhone,
+          notes: formData.notes,
+          promoCode: promoResult ? promoResult.code : '',
+        };
+
+        // Save order data to sessionStorage for the callback
+        sessionStorage.setItem('bkash_order_data', JSON.stringify(orderData));
+
+        // Create bKash payment
+        const { data } = await checkoutAPI.bkashCreate({ amount: total });
+
+        // Redirect to bKash payment page
+        window.location.href = data.bkashURL;
+      } else {
+        // COD flow: place order directly
+        const orderData = {
+          items: cart.map(item => ({ productId: item.productId, quantity: item.quantity })),
+          shippingAddress: formData.shippingAddress,
+          shippingCity: formData.shippingCity,
+          shippingPhone: formData.shippingPhone,
+          notes: formData.notes,
+          promoCode: promoResult ? promoResult.code : null,
+          paymentMethod: 'COD',
+        };
+
+        const { data } = await checkoutAPI.placeOrder(orderData);
+        clearCart(true);
+        toast.success('🎉 Order placed successfully!');
+        navigate(`/order-confirmation/${data.order.id}`);
+      }
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to place order');
+      toast.error(err.response?.data?.error || 'Failed to process payment');
     } finally {
       setIsSubmitting(false);
     }
@@ -153,14 +174,45 @@ const Checkout = () => {
             <div className="form-card">
               <h2>2. Payment Method</h2>
               <div className="payment-methods">
-                <label className="payment-option selected">
-                  <input type="radio" name="paymentMethod" value="COD" checked readOnly />
+                <label className={`payment-option ${paymentMethod === 'COD' ? 'selected' : ''}`}>
+                  <input 
+                    type="radio" 
+                    name="paymentMethod" 
+                    value="COD" 
+                    checked={paymentMethod === 'COD'}
+                    onChange={(e) => setPaymentMethod(e.target.value)}
+                  />
                   <div className="payment-info">
-                    <span className="payment-title">Cash on Delivery</span>
-                    <span className="payment-desc">Pay with cash upon delivery.</span>
+                    <div className="payment-title-row">
+                      <span className="payment-icon cod-icon">💵</span>
+                      <span className="payment-title">Cash on Delivery</span>
+                    </div>
+                    <span className="payment-desc">Pay with cash when your order is delivered.</span>
                   </div>
                 </label>
-                {/* Additional payment methods can be added here later */}
+
+                <label className={`payment-option bkash-option ${paymentMethod === 'BKASH' ? 'selected bkash-selected' : ''}`}>
+                  <input 
+                    type="radio" 
+                    name="paymentMethod" 
+                    value="BKASH" 
+                    checked={paymentMethod === 'BKASH'}
+                    onChange={(e) => setPaymentMethod(e.target.value)}
+                  />
+                  <div className="payment-info">
+                    <div className="payment-title-row">
+                      <span className="payment-icon bkash-icon-badge">
+                        <svg viewBox="0 0 40 40" width="28" height="28">
+                          <rect x="2" y="2" width="36" height="36" rx="8" fill="#E2136E" />
+                          <text x="20" y="28" textAnchor="middle" fill="white" fontSize="22" fontWeight="bold" fontFamily="Arial">b</text>
+                        </svg>
+                      </span>
+                      <span className="payment-title">bKash</span>
+                      <span className="bkash-badge">Mobile Payment</span>
+                    </div>
+                    <span className="payment-desc">Pay securely with your bKash mobile wallet.</span>
+                  </div>
+                </label>
               </div>
             </div>
 
@@ -248,10 +300,22 @@ const Checkout = () => {
             <button 
               type="submit" 
               form="checkout-form"
-              className="btn btn-primary place-order-btn"
+              className={`btn place-order-btn ${paymentMethod === 'BKASH' ? 'bkash-pay-btn' : 'btn-primary'}`}
               disabled={isSubmitting}
             >
-              {isSubmitting ? <div className="spinner-small"></div> : 'Place Order'}
+              {isSubmitting ? (
+                <div className="spinner-small"></div>
+              ) : paymentMethod === 'BKASH' ? (
+                <>
+                  <svg viewBox="0 0 40 40" width="20" height="20" style={{ marginRight: 8 }}>
+                    <rect x="2" y="2" width="36" height="36" rx="8" fill="white" />
+                    <text x="20" y="28" textAnchor="middle" fill="#E2136E" fontSize="22" fontWeight="bold" fontFamily="Arial">b</text>
+                  </svg>
+                  Pay with bKash — ৳{total.toLocaleString()}
+                </>
+              ) : (
+                'Place Order'
+              )}
             </button>
 
             <div className="trust-badge">

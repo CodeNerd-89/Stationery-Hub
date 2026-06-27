@@ -285,3 +285,66 @@
     position: static;
   }
 }
+
+/* ─── bKash Payment Styles ─────────────────────────── */
+.payment-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.payment-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.bkash-icon-badge {
+  display: flex;
+  align-items: center;
+}
+
+.bkash-badge {
+  font-size: 10px;
+  font-weight: 600;
+  color: #E2136E;
+  background: rgba(226, 19, 110, 0.08);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.payment-option.bkash-selected {
+  border-color: #E2136E !important;
+  background-color: rgba(226, 19, 110, 0.04) !important;
+}
+
+.payment-option.bkash-selected input[type="radio"] {
+  accent-color: #E2136E;
+}
+
+.bkash-pay-btn {
+  background: linear-gradient(135deg, #E2136E 0%, #d1115f 100%) !important;
+  border: none !important;
+  color: white !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(226, 19, 110, 0.3);
+}
+
+.bkash-pay-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #d1115f 0%, #b80e50 100%) !important;
+  box-shadow: 0 6px 20px rgba(226, 19, 110, 0.4);
+  transform: translateY(-1px);
+}
+
+.bkash-pay-btn:disabled {
+  opacity: 0.7;
+}
+

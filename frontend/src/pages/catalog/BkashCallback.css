@@ -1,0 +1,183 @@
+.bkash-callback-page {
+  min-height: calc(100vh - var(--navbar-height));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: linear-gradient(135deg, var(--bg-primary) 0%, rgba(226, 19, 110, 0.03) 100%);
+}
+
+.bkash-callback-card {
+  background: var(--bg-card, var(--bg-primary));
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  padding: 48px 40px;
+  max-width: 440px;
+  width: 100%;
+  text-align: center;
+  box-shadow: var(--shadow-xl);
+  animation: bkashFadeUp 0.5s ease-out;
+}
+
+@keyframes bkashFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.bkash-callback-logo {
+  margin-bottom: 32px;
+}
+
+.bkash-logo-svg {
+  width: 120px;
+  height: 48px;
+}
+
+.bkash-callback-status h2 {
+  font-size: 22px;
+  color: var(--text-primary);
+  margin: 16px 0 8px;
+}
+
+.bkash-callback-status p {
+  color: var(--text-secondary);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* Processing Spinner */
+.bkash-processing-spinner {
+  width: 80px;
+  height: 80px;
+  position: relative;
+  margin: 0 auto 16px;
+}
+
+.bkash-spinner-ring {
+  width: 80px;
+  height: 80px;
+  border: 3px solid var(--border-color);
+  border-top-color: #E2136E;
+  border-radius: 50%;
+  animation: bkashSpin 1s linear infinite;
+  position: absolute;
+  inset: 0;
+}
+
+.bkash-spinner-icon {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 700;
+  color: #E2136E;
+}
+
+@keyframes bkashSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* Processing dots */
+.bkash-processing-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 20px;
+}
+
+.bkash-processing-dots span {
+  width: 8px;
+  height: 8px;
+  background: #E2136E;
+  border-radius: 50%;
+  animation: bkashDotPulse 1.4s ease-in-out infinite;
+}
+
+.bkash-processing-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.bkash-processing-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes bkashDotPulse {
+  0%, 80%, 100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Success */
+.bkash-success-check svg {
+  width: 72px;
+  height: 72px;
+  animation: bkashCheckIn 0.6s ease-out;
+}
+
+.bkash-success-check circle {
+  stroke-dasharray: 166;
+  stroke-dashoffset: 166;
+  animation: bkashCircleDraw 0.6s ease-out forwards;
+}
+
+.bkash-success-check path {
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  animation: bkashCheckDraw 0.4s 0.4s ease-out forwards;
+}
+
+@keyframes bkashCircleDraw {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes bkashCheckDraw {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes bkashCheckIn {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Error */
+.bkash-error-icon svg {
+  width: 72px;
+  height: 72px;
+  animation: bkashCheckIn 0.6s ease-out;
+}
+
+.bkash-retry-btn {
+  margin-top: 24px;
+  background: #E2136E !important;
+  border-color: #E2136E !important;
+}
+
+.bkash-retry-btn:hover {
+  background: #c4105d !important;
+  border-color: #c4105d !important;
+}
+
+@media (max-width: 480px) {
+  .bkash-callback-card {
+    padding: 32px 24px;
+  }
+}

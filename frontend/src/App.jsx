@@ -22,6 +22,7 @@ import Checkout from './pages/catalog/Checkout';
 import MyOrders from './pages/catalog/MyOrders';
 import MyOrderDetail from './pages/catalog/MyOrderDetail';
 import OrderConfirmation from './pages/catalog/OrderConfirmation';
+import BkashCallback from './pages/catalog/BkashCallback';
 import Wishlist from './pages/catalog/Wishlist';
 import Profile from './pages/catalog/Profile';
 import CustomerDashboard from './pages/catalog/CustomerDashboard';
@@ -123,6 +124,7 @@ function App() {
             <Route path="/catalog" element={<Catalog />} />
             <Route path="/product/:slug" element={<ProductDetail />} />
             <Route path="/cart" element={<Cart />} />
+            <Route path="/checkout/bkash/callback" element={<PrivateRoute><BkashCallback /></PrivateRoute>} />
             <Route path="/checkout" element={<PrivateRoute><Checkout /></PrivateRoute>} />
             <Route path="/my-orders" element={<PrivateRoute><MyOrders /></PrivateRoute>} />
             <Route path="/my-orders/:id" element={<PrivateRoute><MyOrderDetail /></PrivateRoute>} />

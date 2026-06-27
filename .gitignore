@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+
+# Environment variables (NEVER push these)
+.env
+.env.local
+.env.*.local
+backend-go/.env
+prisma/.env
+frontend/.env
+
+# Build output
+frontend/dist/
+frontend/build/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Go binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+backend-go/tmp/

@@ -46,8 +46,8 @@ const MyOrders = () => {
       if (status !== 'ALL') params.status = status;
       
       const { data } = await ordersAPI.getMyOrders(params);
-      setOrders(data.orders);
-      setPagination(data.pagination);
+      setOrders(data.orders || []);
+      if (data.pagination) setPagination(data.pagination);
     } catch (err) {
       toast.error('Failed to load orders');
     } finally {

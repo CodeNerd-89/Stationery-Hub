@@ -22,6 +22,12 @@ type Config struct {
 	SMTPPass    string
 	SMTPFrom    string
 	FrontendURL string
+	// bKash Sandbox
+	BkashBaseURL   string
+	BkashUsername  string
+	BkashPassword  string
+	BkashAppKey    string
+	BkashAppSecret string
 }
 
 func Load() *Config {
@@ -43,7 +49,12 @@ func Load() *Config {
 		SMTPUser:    getEnv("SMTP_USER", ""),
 		SMTPPass:    getEnv("SMTP_PASS", ""),
 		SMTPFrom:    getEnv("SMTP_FROM", ""),
-		FrontendURL: getEnv("FRONTEND_URL", "http://localhost:5173"),
+		FrontendURL:    getEnv("FRONTEND_URL", "http://localhost:5173"),
+		BkashBaseURL:   getEnv("BKASH_BASE_URL", "https://tokenized.sandbox.bka.sh/v1.2.0-beta"),
+		BkashUsername:  getEnv("BKASH_USERNAME", ""),
+		BkashPassword:  getEnv("BKASH_PASSWORD", ""),
+		BkashAppKey:    getEnv("BKASH_APP_KEY", ""),
+		BkashAppSecret: getEnv("BKASH_APP_SECRET", ""),
 	}
 }
 

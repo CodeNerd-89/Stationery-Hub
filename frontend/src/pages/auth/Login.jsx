@@ -46,7 +46,7 @@ const Login = () => {
           <div className="auth-visual-content">
             <div className="auth-visual-icon">📦</div>
             <h1>Stationery Hub</h1>
-            <p>Your one-stop shop for all stationery and office supplies in Basundhara, Dhaka</p>
+            <p>Your one-stop shop for all stationery and office supplies.</p>
             <div className="auth-visual-features">
               <div className="feature-item">✓ Browse 100+ products</div>
               <div className="feature-item">✓ AI-powered quotations</div>

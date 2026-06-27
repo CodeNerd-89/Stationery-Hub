@@ -27,10 +27,20 @@ func (h *Handler) GetMyOrders(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get orders
-	rows, err := h.DB.Query(ctx, `
+	statusFilter := r.URL.Query().Get("status")
+	query := `
 		SELECT id, order_number, quotation_id, customer_id, shipping_address, shipping_city, shipping_phone,
 			   promo_code, subtotal, discount, shipping_fee, payment_method, order_type, status, total, notes, created_at, updated_at
-		FROM orders WHERE customer_id = $1 ORDER BY created_at DESC`, customerID)
+		FROM orders WHERE customer_id = $1`
+	args := []interface{}{customerID}
+
+	if statusFilter != "" {
+		query += ` AND status = $2`
+		args = append(args, statusFilter)
+	}
+	query += ` ORDER BY created_at DESC`
+
+	rows, err := h.DB.Query(ctx, query, args...)
 	if err != nil {
 		RespondError(w, 500, "Failed to fetch orders.")
 		return
@@ -86,6 +96,16 @@ func (h *Handler) GetMyOrders(w http.ResponseWriter, r *http.Request) {
 			"promoCode": o.PromoCode, "subtotal": o.Subtotal, "discount": o.Discount, "shippingFee": o.ShippingFee,
 			"paymentMethod": o.PaymentMethod, "orderType": o.OrderType, "status": o.Status, "total": o.Total,
 			"notes": o.Notes, "createdAt": o.CreatedAt, "updatedAt": o.UpdatedAt, "items": items,
+		}
+
+		// Extract bKash TrxID from notes if payment method is BKASH
+		if o.PaymentMethod == "BKASH" && o.Notes != nil {
+			if idx := strings.Index(*o.Notes, "[bKash TrxID: "); idx != -1 {
+				start := idx + len("[bKash TrxID: ")
+				if end := strings.Index((*o.Notes)[start:], "]"); end != -1 {
+					order["bkashTrxId"] = (*o.Notes)[start : start+end]
+				}
+			}
 		}
 
 		// Get quotation number if exists
@@ -234,6 +254,16 @@ func (h *Handler) GetOrder(w http.ResponseWriter, r *http.Request) {
 		"promoCode": o.PromoCode, "subtotal": o.Subtotal, "discount": o.Discount, "shippingFee": o.ShippingFee,
 		"paymentMethod": o.PaymentMethod, "orderType": o.OrderType, "status": o.Status, "total": o.Total,
 		"notes": o.Notes, "createdAt": o.CreatedAt, "updatedAt": o.UpdatedAt,
+	}
+
+	// Extract bKash TrxID from notes if payment method is BKASH
+	if o.PaymentMethod == "BKASH" && o.Notes != nil {
+		if idx := strings.Index(*o.Notes, "[bKash TrxID: "); idx != -1 {
+			start := idx + len("[bKash TrxID: ")
+			if end := strings.Index((*o.Notes)[start:], "]"); end != -1 {
+				order["bkashTrxId"] = (*o.Notes)[start : start+end]
+			}
+		}
 	}
 
 	// Customer info

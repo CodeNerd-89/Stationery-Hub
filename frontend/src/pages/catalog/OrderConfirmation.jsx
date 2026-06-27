@@ -176,8 +176,13 @@ const OrderConfirmation = () => {
                 <HiOutlineCreditCard /> Payment Method
               </p>
               <p className="oc-info-value">
-                {order.paymentMethod === 'COD' ? 'Cash on Delivery' : order.paymentMethod}
+                {order.paymentMethod === 'COD' ? 'Cash on Delivery' : order.paymentMethod === 'BKASH' ? 'bKash Mobile Payment' : order.paymentMethod}
               </p>
+              {order.bkashTrxId && (
+                <p className="oc-info-value" style={{ fontSize: '13px', color: '#E2136E', fontWeight: 600, marginTop: 4 }}>
+                  TrxID: {order.bkashTrxId}
+                </p>
+              )}
             </div>
 
             {order.notes && (
