@@ -15,6 +15,9 @@ func main() {
 	db := config.NewDBPool(cfg)
 	defer db.Close()
 
+	// Auto-create tables if they don't exist (idempotent)
+	config.RunMigrations(db)
+
 	// Ensure uploads directory exists
 	if err := os.MkdirAll("./uploads", 0755); err != nil {
 		log.Printf("Warning: could not create uploads directory: %v", err)
