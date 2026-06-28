@@ -1,0 +1,49 @@
+services:
+  - type: web
+    name: stationery-hub-api
+    runtime: go
+    region: singapore
+    plan: free
+    rootDir: backend-go
+    buildCommand: go build -o server ./cmd/server
+    startCommand: ./server
+    envVars:
+      - key: PORT
+        value: "10000"
+      - key: ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: stationery-hub-db
+          property: connectionURI
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: FRONTEND_URL
+        value: https://stationery-hub-ivory.vercel.app
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: SMTP_FROM
+        sync: false
+      - key: BKASH_BASE_URL
+        value: https://tokenized.sandbox.bka.sh/v1.2.0-beta
+      - key: BKASH_USERNAME
+        sync: false
+      - key: BKASH_PASSWORD
+        sync: false
+      - key: BKASH_APP_KEY
+        sync: false
+      - key: BKASH_APP_SECRET
+        sync: false
+
+databases:
+  - name: stationery-hub-db
+    plan: free
+    region: singapore
