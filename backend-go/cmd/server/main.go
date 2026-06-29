@@ -21,6 +21,9 @@ func main() {
 	// Seed sample data if database is empty (idempotent)
 	config.RunSeed(db)
 
+	// Create default admin if none exists (idempotent)
+	config.SeedAdmin(db)
+
 	// Ensure uploads directory exists
 	if err := os.MkdirAll("./uploads", 0755); err != nil {
 		log.Printf("Warning: could not create uploads directory: %v", err)

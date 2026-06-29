@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // seedCategory holds the data for a category to seed.
@@ -198,4 +199,49 @@ func RunSeed(pool *pgxpool.Pool) {
 	}
 
 	fmt.Printf("  ✅ Seeded %d categories and %d products\n", len(categories), len(products))
+}
+
+// SeedAdmin creates a default admin user if no admin exists in the database.
+// This is safe to run multiple times — it only creates the admin when none exist.
+func SeedAdmin(pool *pgxpool.Pool) {
+	ctx := context.Background()
+
+	// Check if any admin user already exists
+	var adminCount int
+	err := pool.QueryRow(ctx, `SELECT COUNT(*) FROM users WHERE role = 'ADMIN'`).Scan(&adminCount)
+	if err != nil {
+		log.Printf("SeedAdmin: could not check admin count: %v", err)
+		return
+	}
+
+	if adminCount > 0 {
+		fmt.Println("  👤 Admin user already exists, skipping admin seed")
+		return
+	}
+
+	fmt.Println("  👤 Creating default admin user...")
+
+	// Hash the default password
+	password := "admin123456"
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), 12)
+	if err != nil {
+		log.Printf("SeedAdmin: failed to hash password: %v", err)
+		return
+	}
+
+	adminID := uuid.New().String()
+	now := time.Now()
+
+	_, err = pool.Exec(ctx, `
+		INSERT INTO users (id, email, password_hash, name, role, email_verified, referral_code, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, 'ADMIN', true, $5, $6, $6)
+	`, adminID, "admin@stationeryhub.com", string(passwordHash), "Admin", "ADMIN"+adminID[:4], now)
+	if err != nil {
+		log.Printf("SeedAdmin: failed to create admin user: %v", err)
+		return
+	}
+
+	fmt.Println("  ✅ Admin user created")
+	fmt.Println("     Email:    admin@stationeryhub.com")
+	fmt.Println("     Password: admin123456")
 }
