@@ -18,6 +18,9 @@ func main() {
 	// Auto-create tables if they don't exist (idempotent)
 	config.RunMigrations(db)
 
+	// Seed sample data if database is empty (idempotent)
+	config.RunSeed(db)
+
 	// Ensure uploads directory exists
 	if err := os.MkdirAll("./uploads", 0755); err != nil {
 		log.Printf("Warning: could not create uploads directory: %v", err)
