@@ -106,13 +106,20 @@ const AdminProducts = () => {
       return;
     }
 
+    // Convert string values to proper types for the Go backend
+    const payload = {
+      ...form,
+      price: parseFloat(form.price) || 0,
+      stock: parseInt(form.stock, 10) || 0,
+    };
+
     setSaving(true);
     try {
       if (editing) {
-        await productsAPI.update(editing.id, form);
+        await productsAPI.update(editing.id, payload);
         toast.success('Product updated!');
       } else {
-        await productsAPI.create(form);
+        await productsAPI.create(payload);
         toast.success('Product created!');
       }
       setShowModal(false);

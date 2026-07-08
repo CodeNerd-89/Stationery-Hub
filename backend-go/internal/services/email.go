@@ -18,8 +18,9 @@ func NewEmailService(cfg *config.Config) *EmailService {
 }
 
 func (e *EmailService) send(to, subject, htmlBody string) {
-	if e.cfg.SMTPHost == "" {
-		log.Printf("SMTP not configured – skipping email to %s: %s", to, subject)
+	if e.cfg.SMTPHost == "" || e.cfg.SMTPUser == "" || e.cfg.SMTPPass == "" {
+		log.Printf("SMTP not fully configured (host=%q, user=%q, pass_set=%v) – skipping email to %s: %s",
+			e.cfg.SMTPHost, e.cfg.SMTPUser, e.cfg.SMTPPass != "", to, subject)
 		return
 	}
 
@@ -30,11 +31,12 @@ func (e *EmailService) send(to, subject, htmlBody string) {
 	m.SetBody("text/html", htmlBody)
 
 	d := gomail.NewDialer(e.cfg.SMTPHost, e.cfg.SMTPPort, e.cfg.SMTPUser, e.cfg.SMTPPass)
+	d.SSL = false // Use STARTTLS on port 587, not implicit SSL
 
 	if err := d.DialAndSend(m); err != nil {
-		log.Printf("Email send error to %s: %v", to, err)
+		log.Printf("Email send error to %s: %v (host=%s, port=%d, user=%s)", to, err, e.cfg.SMTPHost, e.cfg.SMTPPort, e.cfg.SMTPUser)
 	} else {
-		log.Printf("Email sent to %s: %s", to, subject)
+		log.Printf("Email sent successfully to %s: %s", to, subject)
 	}
 }
 
