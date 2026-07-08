@@ -1,8 +1,12 @@
 package services
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io"
 	"log"
+	"net/http"
 	"strings"
 
 	"gopkg.in/gomail.v2"
@@ -17,13 +21,71 @@ func NewEmailService(cfg *config.Config) *EmailService {
 	return &EmailService{cfg: cfg}
 }
 
+// resendPayload is the request body for Resend's API.
+type resendPayload struct {
+	From    string `json:"from"`
+	To      []string `json:"to"`
+	Subject string `json:"subject"`
+	HTML    string `json:"html"`
+}
+
 func (e *EmailService) send(to, subject, htmlBody string) {
-	if e.cfg.SMTPHost == "" || e.cfg.SMTPUser == "" || e.cfg.SMTPPass == "" {
-		log.Printf("SMTP not fully configured (host=%q, user=%q, pass_set=%v) – skipping email to %s: %s",
-			e.cfg.SMTPHost, e.cfg.SMTPUser, e.cfg.SMTPPass != "", to, subject)
+	// Prefer Resend HTTP API (works on Render free tier)
+	if e.cfg.ResendAPIKey != "" {
+		e.sendViaResend(to, subject, htmlBody)
 		return
 	}
 
+	// Fallback to SMTP (for local development)
+	if e.cfg.SMTPHost != "" && e.cfg.SMTPUser != "" && e.cfg.SMTPPass != "" {
+		e.sendViaSMTP(to, subject, htmlBody)
+		return
+	}
+
+	log.Printf("Email not configured (no RESEND_API_KEY or SMTP) – skipping email to %s: %s", to, subject)
+}
+
+// sendViaResend sends email using Resend's HTTP API (port 443, not blocked by Render).
+func (e *EmailService) sendViaResend(to, subject, htmlBody string) {
+	payload := resendPayload{
+		From:    e.cfg.ResendFrom,
+		To:      []string{to},
+		Subject: subject,
+		HTML:    htmlBody,
+	}
+
+	jsonData, err := json.Marshal(payload)
+	if err != nil {
+		log.Printf("Resend: failed to marshal payload: %v", err)
+		return
+	}
+
+	req, err := http.NewRequest("POST", "https://api.resend.com/emails", bytes.NewBuffer(jsonData))
+	if err != nil {
+		log.Printf("Resend: failed to create request: %v", err)
+		return
+	}
+
+	req.Header.Set("Authorization", "Bearer "+e.cfg.ResendAPIKey)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		log.Printf("Resend: HTTP error sending to %s: %v", to, err)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+		log.Printf("Email sent successfully via Resend to %s: %s", to, subject)
+	} else {
+		body, _ := io.ReadAll(resp.Body)
+		log.Printf("Resend: API error %d sending to %s: %s", resp.StatusCode, to, string(body))
+	}
+}
+
+// sendViaSMTP sends email using traditional SMTP (for local development).
+func (e *EmailService) sendViaSMTP(to, subject, htmlBody string) {
 	m := gomail.NewMessage()
 	m.SetHeader("From", e.cfg.SMTPFrom)
 	m.SetHeader("To", to)
@@ -31,12 +93,11 @@ func (e *EmailService) send(to, subject, htmlBody string) {
 	m.SetBody("text/html", htmlBody)
 
 	d := gomail.NewDialer(e.cfg.SMTPHost, e.cfg.SMTPPort, e.cfg.SMTPUser, e.cfg.SMTPPass)
-	d.SSL = false // Use STARTTLS on port 587, not implicit SSL
 
 	if err := d.DialAndSend(m); err != nil {
-		log.Printf("Email send error to %s: %v (host=%s, port=%d, user=%s)", to, err, e.cfg.SMTPHost, e.cfg.SMTPPort, e.cfg.SMTPUser)
+		log.Printf("SMTP: Email send error to %s: %v", to, err)
 	} else {
-		log.Printf("Email sent successfully to %s: %s", to, subject)
+		log.Printf("Email sent successfully via SMTP to %s: %s", to, subject)
 	}
 }
 

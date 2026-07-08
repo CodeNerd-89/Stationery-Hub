@@ -22,6 +22,9 @@ type Config struct {
 	SMTPPass    string
 	SMTPFrom    string
 	FrontendURL string
+	// Resend (HTTP email API — used in production)
+	ResendAPIKey string
+	ResendFrom   string
 	// bKash Sandbox
 	BkashBaseURL   string
 	BkashUsername  string
@@ -50,6 +53,8 @@ func Load() *Config {
 		SMTPPass:    getEnv("SMTP_PASS", ""),
 		SMTPFrom:    getEnv("SMTP_FROM", ""),
 		FrontendURL:    getEnv("FRONTEND_URL", "http://localhost:5173"),
+		ResendAPIKey:   getEnv("RESEND_API_KEY", ""),
+		ResendFrom:     getEnv("RESEND_FROM", "Stationery Hub <onboarding@resend.dev>"),
 		BkashBaseURL:   getEnv("BKASH_BASE_URL", "https://tokenized.sandbox.bka.sh/v1.2.0-beta"),
 		BkashUsername:  getEnv("BKASH_USERNAME", ""),
 		BkashPassword:  getEnv("BKASH_PASSWORD", ""),
