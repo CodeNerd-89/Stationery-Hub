@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
+	"log"
 	"math"
 	"net/http"
 	"strconv"
@@ -406,24 +408,33 @@ func (h *Handler) UpdateOrderStatus(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Send email notification
+	// Send email notification — use background context since the request context
+	// will be cancelled once we send the HTTP response below.
+	orderStatus := body.Status
 	go func() {
+		bgCtx := context.Background()
 		var custEmail, custName *string
 		var custUserID *string
-		h.DB.QueryRow(ctx, `SELECT email, contact_person, user_id FROM customers WHERE id = $1`, customerID).Scan(&custEmail, &custName, &custUserID)
+		h.DB.QueryRow(bgCtx, `SELECT email, contact_person, user_id FROM customers WHERE id = $1`, customerID).Scan(&custEmail, &custName, &custUserID)
 
 		email := ""
 		name := ""
-		if custEmail != nil {
+		if custEmail != nil && *custEmail != "" {
 			email = *custEmail
-		} else if custUserID != nil {
-			h.DB.QueryRow(ctx, `SELECT email, name FROM users WHERE id = $1`, *custUserID).Scan(&email, &name)
 		}
 		if custName != nil {
 			name = *custName
 		}
+
+		// If no email from customer record, try the linked user account
+		if email == "" && custUserID != nil {
+			h.DB.QueryRow(bgCtx, `SELECT email, name FROM users WHERE id = $1`, *custUserID).Scan(&email, &name)
+		}
+
 		if email != "" {
-			h.Email.SendOrderStatusUpdateEmail(email, name, orderNumber, body.Status)
+			h.Email.SendOrderStatusUpdateEmail(email, name, orderNumber, orderStatus)
+		} else {
+			log.Printf("Order %s status update: no email found for customer %s", orderNumber, customerID)
 		}
 	}()
 
