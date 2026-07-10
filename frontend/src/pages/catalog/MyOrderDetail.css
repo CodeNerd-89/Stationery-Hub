@@ -310,6 +310,20 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Side Column - sticky but with proper stacking */
+.side-col {
+  position: sticky;
+  top: 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.side-col .detail-card {
+  position: relative;
+}
+
 @media (max-width: 480px) {
   .ordered-item {
     flex-direction: column;
