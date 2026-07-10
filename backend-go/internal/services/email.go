@@ -190,16 +190,16 @@ func (e *EmailService) SendOrderConfirmationEmail(email, name string, order map[
 		))
 	}
 
-	subject := fmt.Sprintf("Order Confirmed #%s - Stationery Hub", orderNumber)
+	subject := fmt.Sprintf("Order Received #%s - Stationery Hub", orderNumber)
 	html := fmt.Sprintf(`<!DOCTYPE html>
 <html><head><meta charset="UTF-8"></head>
 <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;max-width:600px;margin:0 auto">
-<div style="background:linear-gradient(135deg,#11998e 0%%,#38ef7d 100%%);padding:30px;text-align:center">
-  <h1 style="color:white;margin:0;font-size:28px">✅ Order Confirmed!</h1>
+<div style="background:linear-gradient(135deg,#667eea 0%%,#764ba2 100%%);padding:30px;text-align:center">
+  <h1 style="color:white;margin:0;font-size:28px">📦 Order Received!</h1>
 </div>
 <div style="padding:30px;background:#f8f9fa">
   <h2 style="color:#333">Thank you, %s! 🎉</h2>
-  <p>Your order <strong>#%s</strong> has been placed successfully.</p>
+  <p>Your order <strong>#%s</strong> has been placed successfully and is awaiting confirmation.</p>
   <table style="width:100%%;border-collapse:collapse;margin:20px 0">
     <thead><tr style="background:#e2e8f0">
       <th style="padding:10px;text-align:left">Product</th>
@@ -211,8 +211,9 @@ func (e *EmailService) SendOrderConfirmationEmail(email, name string, order map[
   <div style="background:white;border-radius:10px;padding:15px;margin-top:15px">
     <p style="margin:5px 0"><strong>Total:</strong> %s</p>
     <p style="margin:5px 0"><strong>Payment:</strong> %s</p>
+    <p style="margin:5px 0"><strong>Status:</strong> ⏳ Pending Confirmation</p>
   </div>
-  <p style="margin-top:20px">We'll notify you when your order status updates.</p>
+  <p style="margin-top:20px">We'll notify you via email once your order is confirmed and at every status update.</p>
 </div>
 <div style="background:#333;color:white;padding:20px;text-align:center;font-size:12px">
   <p style="margin:0">© 2025 Stationery Hub. All rights reserved.</p>
