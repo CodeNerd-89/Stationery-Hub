@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
-import { quotationsAPI } from '../../services/api';
+import { quotationsAPI, checkoutAPI } from '../../services/api';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import {
@@ -82,6 +82,9 @@ const Cart = () => {
   const [submitting, setSubmitting] = useState(false);
   const [couponCode, setCouponCode] = useState('');
   const [couponExpanded, setCouponExpanded] = useState(false);
+  const [appliedPromo, setAppliedPromo] = useState(null);
+  const [promoDiscount, setPromoDiscount] = useState(0);
+  const [applyingPromo, setApplyingPromo] = useState(false);
   const [savedItems, setSavedItems] = useState([]);
   const [savedInitialized, setSavedInitialized] = useState(false);
   const [qtyAnimating, setQtyAnimating] = useState(null);
@@ -172,10 +175,32 @@ const Cart = () => {
     toast.success('Item removed');
   };
 
-  const handleApplyCoupon = () => {
+  const handleApplyCoupon = async () => {
     if (!couponCode.trim()) return;
-    toast('Coupon codes will be validated in your quotation.', { icon: '🏷️' });
-    setCouponExpanded(false);
+    try {
+      setApplyingPromo(true);
+      const { data } = await checkoutAPI.validatePromo({
+        code: couponCode.trim(),
+        orderTotal: totalAmount,
+      });
+      setAppliedPromo(data.code);
+      setPromoDiscount(data.discount);
+      setCouponExpanded(false);
+      toast.success(`Promo "${data.code}" applied! You save ৳${data.discount.toLocaleString()}`);
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Invalid promo code.');
+      setAppliedPromo(null);
+      setPromoDiscount(0);
+    } finally {
+      setApplyingPromo(false);
+    }
+  };
+
+  const handleRemovePromo = () => {
+    setAppliedPromo(null);
+    setPromoDiscount(0);
+    setCouponCode('');
+    toast.success('Promo code removed');
   };
 
   // ─── Computed ───────────────────────────────────────
@@ -183,7 +208,7 @@ const Cart = () => {
   const shippingAchieved = totalAmount >= FREE_SHIPPING_THRESHOLD;
   const remainingForFreeShipping = FREE_SHIPPING_THRESHOLD - totalAmount;
   const estimatedShipping = shippingAchieved ? 0 : 150;
-  const estimatedTotal = totalAmount + estimatedShipping;
+  const estimatedTotal = totalAmount + estimatedShipping - promoDiscount;
 
   // ═════════════════════════════════════════════════════
   // EMPTY CART STATE
@@ -445,9 +470,15 @@ const Cart = () => {
                   onChange={(e) => setCouponCode(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
                 />
-                <button className="coupon-apply-btn" onClick={handleApplyCoupon}>
-                  Apply
+                <button className="coupon-apply-btn" onClick={handleApplyCoupon} disabled={applyingPromo}>
+                  {applyingPromo ? 'Checking...' : 'Apply'}
                 </button>
+              </div>
+            )}
+            {appliedPromo && (
+              <div className="coupon-applied">
+                <span>🎉 <strong>{appliedPromo}</strong> applied — ৳{promoDiscount.toLocaleString()} off</span>
+                <button onClick={handleRemovePromo} className="coupon-remove-btn">✕</button>
               </div>
             )}
           </div>
@@ -461,6 +492,13 @@ const Cart = () => {
                 <span className="label">Subtotal ({totalItems} items)</span>
                 <span className="value">৳{totalAmount.toLocaleString()}</span>
               </div>
+
+              {promoDiscount > 0 && (
+                <div className="cart-summary-row discount">
+                  <span className="label">Discount ({appliedPromo})</span>
+                  <span className="value" style={{ color: 'var(--success-500)' }}>-৳{promoDiscount.toLocaleString()}</span>
+                </div>
+              )}
 
               <div className="cart-summary-row shipping">
                 <span className="label">Shipping</span>
