@@ -2,9 +2,13 @@ package services
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
+	"io"
 	"log"
-	"os/exec"
+	"mime/multipart"
+	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -24,21 +28,83 @@ func ExtractText(filePath, fileType string) (string, error) {
 	return extractTextFromImage(filePath)
 }
 
-// extractTextFromImage uses the Tesseract CLI for OCR.
+// ocrSpaceResponse represents the JSON response from OCR.space API.
+type ocrSpaceResponse struct {
+	ParsedResults []struct {
+		ParsedText string `json:"ParsedText"`
+	} `json:"ParsedResults"`
+	IsErroredOnProcessing bool   `json:"IsErroredOnProcessing"`
+	ErrorMessage          []string `json:"ErrorMessage"`
+}
+
+// extractTextFromImage uses the OCR.space free API for OCR.
 func extractTextFromImage(filePath string) (string, error) {
-	log.Printf("  🔍 Running OCR on image: %s", filepath.Base(filePath))
+	log.Printf("  🔍 Running OCR (OCR.space) on image: %s", filepath.Base(filePath))
 
-	cmd := exec.Command("tesseract", filePath, "stdout", "-l", "eng")
-	var stdout, stderr bytes.Buffer
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
+	// Open the image file
+	f, err := os.Open(filePath)
+	if err != nil {
+		return "", fmt.Errorf("failed to open image file: %w", err)
+	}
+	defer f.Close()
 
-	if err := cmd.Run(); err != nil {
-		return "", fmt.Errorf("tesseract OCR failed: %w\nStderr: %s\nIs Tesseract installed? Install from https://github.com/tesseract-ocr/tesseract", err, stderr.String())
+	// Build multipart form body
+	var body bytes.Buffer
+	writer := multipart.NewWriter(&body)
+
+	// Add API key
+	writer.WriteField("apikey", "helloworld")
+	writer.WriteField("language", "eng")
+	writer.WriteField("isOverlayRequired", "false")
+
+	// Attach the image file
+	part, err := writer.CreateFormFile("file", filepath.Base(filePath))
+	if err != nil {
+		return "", fmt.Errorf("failed to create form file: %w", err)
+	}
+	if _, err := io.Copy(part, f); err != nil {
+		return "", fmt.Errorf("failed to copy file to form: %w", err)
+	}
+	writer.Close()
+
+	// Send POST request to OCR.space
+	req, err := http.NewRequest("POST", "https://api.ocr.space/parse/image", &body)
+	if err != nil {
+		return "", fmt.Errorf("failed to create OCR request: %w", err)
+	}
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("OCR.space API request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("failed to read OCR response: %w", err)
 	}
 
-	log.Println("  ✅ OCR complete")
-	return stdout.String(), nil
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("OCR.space API returned status %d: %s", resp.StatusCode, string(respBody))
+	}
+
+	// Parse response JSON
+	var ocrResp ocrSpaceResponse
+	if err := json.Unmarshal(respBody, &ocrResp); err != nil {
+		return "", fmt.Errorf("failed to parse OCR response: %w", err)
+	}
+
+	if ocrResp.IsErroredOnProcessing {
+		return "", fmt.Errorf("OCR.space processing error: %v", ocrResp.ErrorMessage)
+	}
+
+	if len(ocrResp.ParsedResults) == 0 {
+		return "", fmt.Errorf("OCR.space returned no results")
+	}
+
+	log.Println("  ✅ OCR complete (OCR.space)")
+	return ocrResp.ParsedResults[0].ParsedText, nil
 }
 
 // extractTextFromPDF extracts text from a PDF using ledongthuc/pdf.

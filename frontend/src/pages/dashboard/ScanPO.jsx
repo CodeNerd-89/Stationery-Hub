@@ -1,11 +1,44 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, Component } from 'react';
 import { scanAPI, customersAPI } from '../../services/api';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { HiOutlineUpload, HiOutlineDocumentSearch, HiOutlineCheck, HiOutlineX, HiOutlineChevronDown, HiOutlineChevronUp } from 'react-icons/hi';
 import './ScanPO.css';
 
-const ScanPO = () => {
+// ─── Error Boundary ─────────────────────────────────
+class ScanErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="scan-page">
+          <div className="page-header">
+            <div>
+              <h1 className="page-title">Scan Purchase Order</h1>
+              <p className="page-subtitle">Something went wrong loading this page</p>
+            </div>
+          </div>
+          <div className="card" style={{ padding: 32, textAlign: 'center' }}>
+            <p style={{ color: 'var(--danger-500)', marginBottom: 12 }}>⚠️ {this.state.error?.message || 'Unknown error'}</p>
+            <button className="btn btn-primary" onClick={() => this.setState({ hasError: false, error: null })}>
+              Try Again
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+// ─── Scan PO Component ──────────────────────────────
+const ScanPOInner = () => {
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [scanning, setScanning] = useState(false);
@@ -62,7 +95,8 @@ const ScanPO = () => {
       formData.append('file', file);
       const { data } = await scanAPI.upload(formData);
       setResult(data);
-      setEditedItems(data.matchedItems.map((item, idx) => ({
+      const matchedItems = data.matchedItems || [];
+      setEditedItems(matchedItems.map((item, idx) => ({
         ...item,
         id: idx,
         selectedProductId: item.matchedProduct?.id || null,
@@ -72,9 +106,12 @@ const ScanPO = () => {
         include: true,
       })));
       // Fetch customers for quotation creation
-      const custRes = await customersAPI.getAll({ limit: 100 });
-      setCustomers(custRes.data.customers);
-      toast.success(`Scan complete! ${data.stats.totalExtracted} items found`);
+      try {
+        const custRes = await customersAPI.getAll({ limit: 100 });
+        setCustomers(custRes.data.customers || []);
+      } catch { setCustomers([]); }
+      const stats = data.stats || {};
+      toast.success(`Scan complete! ${stats.totalExtracted || matchedItems.length} items found`);
     } catch (err) {
       toast.error(err.response?.data?.error || 'Scan failed');
     } finally {
@@ -121,10 +158,18 @@ const ScanPO = () => {
   };
 
   const confidenceBadge = (conf) => {
-    const pct = Math.round(conf * 100);
+    const pct = Math.round((conf || 0) * 100);
     if (pct >= 70) return <span className="badge badge-success">{pct}%</span>;
     if (pct >= 40) return <span className="badge badge-warning">{pct}%</span>;
     return <span className="badge badge-danger">{pct}%</span>;
+  };
+
+  // Safe stats access
+  const stats = result?.stats || {
+    totalExtracted: result?.matchedItems?.length || 0,
+    autoMatched: 0,
+    needsReview: 0,
+    unmatched: result?.matchedItems?.length || 0,
   };
 
   return (
@@ -176,10 +221,10 @@ const ScanPO = () => {
         <>
           {/* Scan Results */}
           <div className="scan-stats">
-            <div className="scan-stat"><span className="scan-stat-num">{result.stats.totalExtracted}</span><span>Total Items</span></div>
-            <div className="scan-stat"><span className="scan-stat-num scan-stat-green">{result.stats.autoMatched}</span><span>Auto-Matched</span></div>
-            <div className="scan-stat"><span className="scan-stat-num scan-stat-yellow">{result.stats.needsReview}</span><span>Needs Review</span></div>
-            <div className="scan-stat"><span className="scan-stat-num scan-stat-red">{result.stats.unmatched}</span><span>Unmatched</span></div>
+            <div className="scan-stat"><span className="scan-stat-num">{stats.totalExtracted}</span><span>Total Items</span></div>
+            <div className="scan-stat"><span className="scan-stat-num scan-stat-green">{stats.autoMatched}</span><span>Auto-Matched</span></div>
+            <div className="scan-stat"><span className="scan-stat-num scan-stat-yellow">{stats.needsReview}</span><span>Needs Review</span></div>
+            <div className="scan-stat"><span className="scan-stat-num scan-stat-red">{stats.unmatched}</span><span>Unmatched</span></div>
           </div>
 
           {/* Raw Text Toggle */}
@@ -203,7 +248,7 @@ const ScanPO = () => {
                 </thead>
                 <tbody>
                   {editedItems.map((item) => (
-                    <tr key={item.id} className={!item.matchedProduct && item.confidence < 0.4 ? 'scan-row-unmatched' : ''}>
+                    <tr key={item.id} className={!item.matchedProduct && (item.confidence || 0) < 0.4 ? 'scan-row-unmatched' : ''}>
                       <td>
                         <input type="checkbox" checked={item.include} onChange={(e) => updateEditedItem(item.id, 'include', e.target.checked)} style={{ width: 18, height: 18, accentColor: 'var(--primary-500)' }} />
                       </td>
@@ -221,7 +266,7 @@ const ScanPO = () => {
                               <div className="scan-suggestions">
                                 {item.suggestions.map((s) => (
                                   <button key={s.id} className="btn btn-ghost btn-sm" onClick={() => selectSuggestion(item.id, s)} style={{ fontSize: '0.75rem', padding: '2px 6px' }}>
-                                    {s.name} ({Math.round(s.confidence * 100)}%)
+                                    {s.name} ({Math.round((s.confidence || 0) * 100)}%)
                                   </button>
                                 ))}
                               </div>
@@ -264,5 +309,12 @@ const ScanPO = () => {
     </div>
   );
 };
+
+// ─── Export with Error Boundary ──────────────────────
+const ScanPO = () => (
+  <ScanErrorBoundary>
+    <ScanPOInner />
+  </ScanErrorBoundary>
+);
 
 export default ScanPO;

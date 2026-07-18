@@ -96,6 +96,19 @@ func (h *Handler) UploadScan(w http.ResponseWriter, r *http.Request) {
 	// Fuzzy match
 	matchedItems := services.MatchWithCatalog(extractedItems, products)
 
+	// Calculate stats for the frontend
+	totalExtracted := len(matchedItems)
+	autoMatched := 0
+	needsReview := 0
+	for _, item := range matchedItems {
+		if item.MatchedProduct != nil && item.Confidence > 0.6 {
+			autoMatched++
+		} else if item.Confidence > 0 && item.MatchedProduct == nil {
+			needsReview++
+		}
+	}
+	unmatched := totalExtracted - autoMatched - needsReview
+
 	// Save scan job
 	scanID := uuid.New().String()
 	matchedJSON, _ := json.Marshal(matchedItems)
@@ -106,11 +119,17 @@ func (h *Handler) UploadScan(w http.ResponseWriter, r *http.Request) {
 		scanID, user.ID, fileURL, contentType, rawText, matchedJSON, time.Now())
 
 	RespondJSON(w, 200, map[string]interface{}{
-		"message":     "Scan processed successfully.",
-		"scanJobId":   scanID,
-		"rawText":     rawText,
+		"message":      "Scan processed successfully.",
+		"scanJobId":    scanID,
+		"rawText":      rawText,
 		"matchedItems": matchedItems,
-		"fileUrl":     fileURL,
+		"fileUrl":      fileURL,
+		"stats": map[string]int{
+			"totalExtracted": totalExtracted,
+			"autoMatched":    autoMatched,
+			"needsReview":    needsReview,
+			"unmatched":      unmatched,
+		},
 	})
 }
 

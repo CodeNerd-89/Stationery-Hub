@@ -21,5 +21,8 @@
   "homepage": "https://github.com/CodeNerd-89/Stationery-Hub#readme",
   "dependencies": {
     "dotenv": "^17.4.2"
+  },
+  "devDependencies": {
+    "pg": "^8.22.0"
   }
 }
