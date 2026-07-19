@@ -19,7 +19,10 @@ func RunMigrations(pool *pgxpool.Pool) {
 		`DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'Role') THEN CREATE TYPE "Role" AS ENUM ('ADMIN', 'STAFF', 'CUSTOMER'); END IF; END $$`,
 		`DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'QuotationStatus') THEN CREATE TYPE "QuotationStatus" AS ENUM ('DRAFT', 'SENT', 'ACCEPTED', 'REJECTED', 'EXPIRED'); END IF; END $$`,
 		`DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'OrderStatus') THEN CREATE TYPE "OrderStatus" AS ENUM ('PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'COMPLETED', 'CANCELLED'); END IF; END $$`,
-		`DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'ScanStatus') THEN CREATE TYPE "ScanStatus" AS ENUM ('PROCESSING', 'COMPLETED', 'FAILED'); END IF; END $$`,
+		`DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'ScanStatus') THEN CREATE TYPE "ScanStatus" AS ENUM ('PROCESSING', 'COMPLETED', 'FAILED', 'CONVERTED', 'ERROR'); END IF; END $$`,
+		// Add missing enum values to existing databases
+		`DO $$ BEGIN ALTER TYPE "ScanStatus" ADD VALUE IF NOT EXISTS 'CONVERTED'; EXCEPTION WHEN duplicate_object THEN NULL; END $$`,
+		`DO $$ BEGIN ALTER TYPE "ScanStatus" ADD VALUE IF NOT EXISTS 'ERROR'; EXCEPTION WHEN duplicate_object THEN NULL; END $$`,
 		`DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'DiscountType') THEN CREATE TYPE "DiscountType" AS ENUM ('PERCENTAGE', 'FIXED'); END IF; END $$`,
 
 		// ─── Tables ───

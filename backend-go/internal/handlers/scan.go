@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -200,12 +201,13 @@ func (h *Handler) CreateQuotationFromScan(w http.ResponseWriter, r *http.Request
 		quotationID, quotationNumber, body.CustomerID, user.ID, subtotal, total, body.Notes,
 		now.AddDate(0, 0, 30), now)
 	if err != nil {
-		RespondError(w, 500, "Failed to create quotation.")
+		log.Printf("  ❌ Failed to insert quotation: %v", err)
+		RespondError(w, 500, fmt.Sprintf("Failed to create quotation: %v", err))
 		return
 	}
 
 	// Create items
-	for _, item := range body.Items {
+	for i, item := range body.Items {
 		discountMultiplier := 1 - (item.Discount / 100)
 		lineTotal := float64(item.Quantity) * item.UnitPrice * discountMultiplier
 
@@ -214,27 +216,41 @@ func (h *Handler) CreateQuotationFromScan(w http.ResponseWriter, r *http.Request
 			prodID = &item.ProductID
 		}
 
+		// Use the item name, default to "Unknown Item" if empty
+		itemName := item.Name
+		if itemName == "" {
+			itemName = fmt.Sprintf("Scanned Item %d", i+1)
+		}
+
 		_, err := tx.Exec(ctx,
 			`INSERT INTO quotation_items (id, quotation_id, product_id, product_name, quantity, unit_price, discount_percent, line_total)
 			 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-			uuid.New().String(), quotationID, prodID, item.Name, item.Quantity, item.UnitPrice, item.Discount, lineTotal)
+			uuid.New().String(), quotationID, prodID, itemName, item.Quantity, item.UnitPrice, item.Discount, lineTotal)
 		if err != nil {
-			RespondError(w, 500, "Failed to create quotation items.")
+			log.Printf("  ❌ Failed to insert quotation item %d (%s): %v", i, itemName, err)
+			RespondError(w, 500, fmt.Sprintf("Failed to create item '%s': %v", itemName, err))
 			return
 		}
 	}
 
 	// Link scan job to quotation
-	tx.Exec(ctx, `UPDATE scan_jobs SET quotation_id = $1, status = 'CONVERTED' WHERE id = $2`, quotationID, scanJobID)
+	_, err = tx.Exec(ctx, `UPDATE scan_jobs SET quotation_id = $1, status = 'CONVERTED' WHERE id = $2`, quotationID, scanJobID)
+	if err != nil {
+		log.Printf("  ❌ Failed to link scan job: %v", err)
+		RespondError(w, 500, fmt.Sprintf("Failed to link scan job: %v", err))
+		return
+	}
 
 	if err := tx.Commit(ctx); err != nil {
-		RespondError(w, 500, "Failed to commit quotation.")
+		log.Printf("  ❌ Failed to commit quotation: %v", err)
+		RespondError(w, 500, fmt.Sprintf("Failed to commit quotation: %v", err))
 		return
 	}
 
 	RespondJSON(w, 201, map[string]interface{}{
-		"message":     "Quotation created from scan.",
-		"quotationId": quotationID,
+		"message":         "Quotation created from scan.",
+		"quotationId":     quotationID,
 		"quotationNumber": quotationNumber,
 	})
 }
+
