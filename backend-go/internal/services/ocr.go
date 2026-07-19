@@ -130,7 +130,10 @@ func extractTextFromPDF(filePath string) (string, error) {
 			continue
 		}
 		for _, row := range rows {
-			for _, word := range row.Content {
+			for j, word := range row.Content {
+				if j > 0 {
+					text.WriteString(" ")
+				}
 				text.WriteString(word.S)
 			}
 			text.WriteString("\n")

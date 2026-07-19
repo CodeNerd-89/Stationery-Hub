@@ -17,10 +17,11 @@ type scoredProduct struct {
 
 // ExtractedItem represents a single item parsed from OCR text.
 type ExtractedItem struct {
-	Name     string `json:"name"`
-	Quantity int    `json:"quantity"`
-	Unit     string `json:"unit"`
-	RawLine  string `json:"rawLine"`
+	Name      string  `json:"name"`
+	Quantity  int     `json:"quantity"`
+	Unit      string  `json:"unit"`
+	UnitPrice float64 `json:"unitPrice"`
+	RawLine   string  `json:"rawLine"`
 }
 
 // ProductForMatch is the product data needed for fuzzy matching.
@@ -81,10 +82,16 @@ var (
 	// "1. A4 Paper 5pcs" (numbered list)
 	patternNumbered = regexp.MustCompile(`(?i)^\d+[.)]\s*(.+?)\s+(\d+)\s*(pcs?|packs?|box(?:es)?|reams?|sets?|rolls?|dozens?|units?)?$`)
 
+	// PO table row: "1 A4 Copier Paper 80 GSM 20 Ream 550.00 11,000.00"
+	// Matches: <item_no> <description> <qty> <unit> <unit_price> <total>
+	patternPOTable = regexp.MustCompile(`(?i)^\d+\s+(.+?)\s+(\d+)\s+(pcs?|pieces?|packs?|box(?:es)?|reams?|sets?|rolls?|dozens?|units?)\s+([\d,]+\.\d{2})\s+[\d,]+\.\d{2}$`)
+
 	// Skip lines that look like headers/metadata
-	skipLinePattern = regexp.MustCompile(`(?i)^(date|from|to|total|subtotal|tax|note|phone|email|address|invoice|purchase|order|po\s|p\.o)`)
+	skipLinePattern = regexp.MustCompile(`(?i)^(date|from|to|total|subtotal|tax|vat|note|phone|email|address|invoice|purchase\s+order|order\s*#|po\s|p\.o|item\s*no|description|qty|quantity|unit\s*price|amount|vendor|supplier|ship|delivery|payment|authorized|designation|grand\s*total|net\s)`)
 	// Extract a number from a line
 	numberPattern = regexp.MustCompile(`(\d+)`)
+	// Extract decimal prices from a line (e.g., 550.00, 1,800.00)
+	pricePattern = regexp.MustCompile(`([\d,]+\.\d{2})`)
 	// Strip all digits
 	digitPattern = regexp.MustCompile(`\d+`)
 	// Collapse multiple spaces
@@ -108,18 +115,42 @@ func ParseExtractedItems(rawText string) []ExtractedItem {
 			continue
 		}
 
+		// Skip header/metadata lines
+		if skipLinePattern.MatchString(line) {
+			continue
+		}
+
 		matched := false
 
-		// Pattern 1: QTY UNIT ITEM_NAME
-		if m := patternQtyFirst.FindStringSubmatch(line); m != nil {
-			qty, _ := strconv.Atoi(m[1])
+		// Pattern 0 (PO Table): "1 A4 Copier Paper 20 Ream 550.00 11,000.00"
+		if m := patternPOTable.FindStringSubmatch(line); m != nil {
+			qty, _ := strconv.Atoi(m[2])
+			price := parsePrice(m[4])
 			items = append(items, ExtractedItem{
-				Name:     strings.TrimSpace(m[3]),
-				Quantity: qty,
-				Unit:     normalizeUnit(m[2]),
-				RawLine:  line,
+				Name:      strings.TrimSpace(m[1]),
+				Quantity:  qty,
+				Unit:      normalizeUnit(m[3]),
+				UnitPrice: price,
+				RawLine:   line,
 			})
 			matched = true
+		}
+
+		// Pattern 1: QTY UNIT ITEM_NAME
+		if !matched {
+			if m := patternQtyFirst.FindStringSubmatch(line); m != nil {
+				qty, _ := strconv.Atoi(m[1])
+				price := extractLastPrice(m[3])
+				name := removePrices(m[3])
+				items = append(items, ExtractedItem{
+					Name:      strings.TrimSpace(name),
+					Quantity:  qty,
+					Unit:      normalizeUnit(m[2]),
+					UnitPrice: price,
+					RawLine:   line,
+				})
+				matched = true
+			}
 		}
 
 		// Pattern 2: ITEM_NAME x QTY
@@ -127,10 +158,11 @@ func ParseExtractedItems(rawText string) []ExtractedItem {
 			if m := patternCross.FindStringSubmatch(line); m != nil {
 				qty, _ := strconv.Atoi(m[2])
 				items = append(items, ExtractedItem{
-					Name:     strings.TrimSpace(m[1]),
-					Quantity: qty,
-					Unit:     normalizeUnit(m[3]),
-					RawLine:  line,
+					Name:      strings.TrimSpace(m[1]),
+					Quantity:  qty,
+					Unit:      normalizeUnit(m[3]),
+					UnitPrice: extractLastPrice(m[1]),
+					RawLine:   line,
 				})
 				matched = true
 			}
@@ -141,10 +173,11 @@ func ParseExtractedItems(rawText string) []ExtractedItem {
 			if m := patternDash.FindStringSubmatch(line); m != nil {
 				qty, _ := strconv.Atoi(m[2])
 				items = append(items, ExtractedItem{
-					Name:     strings.TrimSpace(m[1]),
-					Quantity: qty,
-					Unit:     normalizeUnit(m[3]),
-					RawLine:  line,
+					Name:      strings.TrimSpace(m[1]),
+					Quantity:  qty,
+					Unit:      normalizeUnit(m[3]),
+					UnitPrice: extractLastPrice(m[1]),
+					RawLine:   line,
 				})
 				matched = true
 			}
@@ -155,10 +188,11 @@ func ParseExtractedItems(rawText string) []ExtractedItem {
 			if m := patternTabular.FindStringSubmatch(line); m != nil {
 				qty, _ := strconv.Atoi(m[2])
 				items = append(items, ExtractedItem{
-					Name:     strings.TrimSpace(m[1]),
-					Quantity: qty,
-					Unit:     normalizeUnit(m[3]),
-					RawLine:  line,
+					Name:      strings.TrimSpace(m[1]),
+					Quantity:  qty,
+					Unit:      normalizeUnit(m[3]),
+					UnitPrice: extractLastPrice(m[1]),
+					RawLine:   line,
 				})
 				matched = true
 			}
@@ -169,29 +203,35 @@ func ParseExtractedItems(rawText string) []ExtractedItem {
 			if m := patternNumbered.FindStringSubmatch(line); m != nil {
 				qty, _ := strconv.Atoi(m[2])
 				items = append(items, ExtractedItem{
-					Name:     strings.TrimSpace(m[1]),
-					Quantity: qty,
-					Unit:     normalizeUnit(m[3]),
-					RawLine:  line,
+					Name:      strings.TrimSpace(m[1]),
+					Quantity:  qty,
+					Unit:      normalizeUnit(m[3]),
+					UnitPrice: extractLastPrice(m[1]),
+					RawLine:   line,
 				})
 				matched = true
 			}
 		}
 
-		// Fallback: treat the whole line as an item name with qty from any embedded number
-		if !matched && len(line) > 5 && !skipLinePattern.MatchString(line) {
+		// Fallback: extract price from any line with numbers
+		if !matched && len(line) > 5 {
 			if numMatch := numberPattern.FindStringSubmatch(line); numMatch != nil {
 				qty, _ := strconv.Atoi(numMatch[1])
 				if qty > 0 && qty < 10000 {
-					name := digitPattern.ReplaceAllString(line, "")
+					price := extractLastPrice(line)
+					name := removePrices(line)
+					name = digitPattern.ReplaceAllString(name, "")
 					name = spacesPattern.ReplaceAllString(name, " ")
 					name = strings.TrimSpace(name)
-					items = append(items, ExtractedItem{
-						Name:     name,
-						Quantity: qty,
-						Unit:     "",
-						RawLine:  line,
-					})
+					if name != "" {
+						items = append(items, ExtractedItem{
+							Name:      name,
+							Quantity:  qty,
+							Unit:      "",
+							UnitPrice: price,
+							RawLine:   line,
+						})
+					}
 				}
 			}
 		}
@@ -225,6 +265,34 @@ func normalizeUnit(unit string) string {
 		return normalized
 	}
 	return "pc"
+}
+
+// ─── Price Helpers ──────────────────────────────────
+
+// parsePrice converts a price string like "1,800.00" to float64.
+func parsePrice(s string) float64 {
+	s = strings.ReplaceAll(s, ",", "")
+	f, _ := strconv.ParseFloat(s, 64)
+	return f
+}
+
+// extractLastPrice finds prices (e.g., "550.00", "11,000.00") in text.
+// If 2+ prices found, returns the second-to-last (unit price, not total).
+// If 1 price found, returns it.
+func extractLastPrice(text string) float64 {
+	matches := pricePattern.FindAllString(text, -1)
+	if len(matches) >= 2 {
+		return parsePrice(matches[len(matches)-2]) // second-to-last = unit price
+	}
+	if len(matches) == 1 {
+		return parsePrice(matches[0])
+	}
+	return 0
+}
+
+// removePrices strips price patterns (like 550.00, 11,000.00) from text.
+func removePrices(text string) string {
+	return pricePattern.ReplaceAllString(text, "")
 }
 
 // ─── Fuzzy Matching ─────────────────────────────────
@@ -279,7 +347,7 @@ func MatchWithCatalog(items []ExtractedItem, products []ProductForMatch) []Match
 		}
 
 		var matchedProduct *MatchedProductInfo
-		unitPrice := 0.0
+		unitPrice := item.UnitPrice // Use extracted price from OCR as default
 
 		// Auto-match if confidence > 0.6
 		if confidence > 0.6 && len(scored_list) > 0 {
@@ -292,7 +360,10 @@ func MatchWithCatalog(items []ExtractedItem, products []ProductForMatch) []Match
 				Stock: top.Stock,
 				Unit:  top.Unit,
 			}
-			unitPrice = top.Price
+			// Use catalog price if available, else keep extracted price
+			if top.Price > 0 {
+				unitPrice = top.Price
+			}
 		}
 
 		// Top 3 suggestions
