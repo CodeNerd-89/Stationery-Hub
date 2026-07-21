@@ -236,7 +236,7 @@
   animation: countUp 0.6s ease both;
   font-size: 1.625rem;
   font-weight: 800;
-  background: linear-gradient(135deg, var(--gray-900), var(--gray-700));
+  background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
