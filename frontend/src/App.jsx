@@ -2,43 +2,44 @@ import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 
-// Layout
+// Layout (always needed — keep eager)
 import Navbar from './components/layout/Navbar';
 import Sidebar from './components/layout/Sidebar';
 
+// ─── Lazy-loaded Pages (code splitting) ────────────────
 // Auth Pages
-import Login from './pages/auth/Login';
-import Register from './pages/auth/Register';
-import VerifyOTP from './pages/auth/VerifyOTP';
-import ForgotPassword from './pages/auth/ForgotPassword';
+const Login = lazy(() => import('./pages/auth/Login'));
+const Register = lazy(() => import('./pages/auth/Register'));
+const VerifyOTP = lazy(() => import('./pages/auth/VerifyOTP'));
+const ForgotPassword = lazy(() => import('./pages/auth/ForgotPassword'));
 
-// Catalog
-import Catalog from './pages/catalog/Catalog';
-import Cart from './pages/catalog/Cart';
-import ProductDetail from './pages/catalog/ProductDetail';
-import Checkout from './pages/catalog/Checkout';
-import MyOrders from './pages/catalog/MyOrders';
-import MyOrderDetail from './pages/catalog/MyOrderDetail';
-import OrderConfirmation from './pages/catalog/OrderConfirmation';
-import BkashCallback from './pages/catalog/BkashCallback';
-import Wishlist from './pages/catalog/Wishlist';
-import Profile from './pages/catalog/Profile';
-import CustomerDashboard from './pages/catalog/CustomerDashboard';
+// Catalog Pages
+const Catalog = lazy(() => import('./pages/catalog/Catalog'));
+const Cart = lazy(() => import('./pages/catalog/Cart'));
+const ProductDetail = lazy(() => import('./pages/catalog/ProductDetail'));
+const Checkout = lazy(() => import('./pages/catalog/Checkout'));
+const MyOrders = lazy(() => import('./pages/catalog/MyOrders'));
+const MyOrderDetail = lazy(() => import('./pages/catalog/MyOrderDetail'));
+const OrderConfirmation = lazy(() => import('./pages/catalog/OrderConfirmation'));
+const BkashCallback = lazy(() => import('./pages/catalog/BkashCallback'));
+const Wishlist = lazy(() => import('./pages/catalog/Wishlist'));
+const Profile = lazy(() => import('./pages/catalog/Profile'));
+const CustomerDashboard = lazy(() => import('./pages/catalog/CustomerDashboard'));
 
-// Admin/Staff Dashboard
-import AdminDashboard from './pages/dashboard/AdminDashboard';
-import AdminProducts from './pages/dashboard/AdminProducts';
-import AdminCategories from './pages/dashboard/AdminCategories';
-import AdminCustomers from './pages/dashboard/AdminCustomers';
-import AdminQuotations from './pages/dashboard/AdminQuotations';
-import QuotationBuilder from './pages/dashboard/QuotationBuilder';
-import AdminOrders from './pages/dashboard/AdminOrders';
-import ScanPO from './pages/dashboard/ScanPO';
-import AdminUsers from './pages/dashboard/AdminUsers';
-import Analytics from './pages/dashboard/Analytics';
-import AdminPromos from './pages/admin/AdminPromos';
+// Admin/Staff Dashboard Pages
+const AdminDashboard = lazy(() => import('./pages/dashboard/AdminDashboard'));
+const AdminProducts = lazy(() => import('./pages/dashboard/AdminProducts'));
+const AdminCategories = lazy(() => import('./pages/dashboard/AdminCategories'));
+const AdminCustomers = lazy(() => import('./pages/dashboard/AdminCustomers'));
+const AdminQuotations = lazy(() => import('./pages/dashboard/AdminQuotations'));
+const QuotationBuilder = lazy(() => import('./pages/dashboard/QuotationBuilder'));
+const AdminOrders = lazy(() => import('./pages/dashboard/AdminOrders'));
+const ScanPO = lazy(() => import('./pages/dashboard/ScanPO'));
+const AdminUsers = lazy(() => import('./pages/dashboard/AdminUsers'));
+const Analytics = lazy(() => import('./pages/dashboard/Analytics'));
+const AdminPromos = lazy(() => import('./pages/admin/AdminPromos'));
 
 import './App.css';
 
@@ -111,6 +112,7 @@ function App() {
           }}
         />
 
+        <Suspense fallback={<div className="loading-screen" style={{ minHeight: '100vh' }}><div className="spinner" /><p>Loading...</p></div>}>
         <Routes>
           {/* Auth (no layout) */}
           <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
@@ -159,6 +161,7 @@ function App() {
             </div>
           } />
         </Routes>
+        </Suspense>
       </Router>
       </CartProvider>
     </AuthProvider>

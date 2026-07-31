@@ -12,6 +12,62 @@
   justify-content: space-between;
   padding: 0 24px;
   z-index: 100;
+  transition: box-shadow var(--transition-base), background var(--transition-base);
+}
+
+.navbar-scrolled {
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* ─── Navbar Search ──────────────────────────────────── */
+.navbar-search {
+  position: relative;
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.25s ease,
+              margin 0.35s ease;
+  margin-right: 0;
+}
+
+.navbar-search-visible {
+  max-width: 280px;
+  opacity: 1;
+  margin-right: 8px;
+}
+
+.navbar-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-tertiary);
+  font-size: 1rem;
+  pointer-events: none;
+}
+
+.navbar-search input {
+  width: 280px;
+  padding: 8px 14px 8px 36px;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-full);
+  background: var(--gray-50);
+  font-size: 0.8125rem;
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+}
+
+.navbar-search input:focus {
+  border-color: var(--primary-400);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  background: white;
+}
+
+.navbar-search input::placeholder {
+  color: var(--text-tertiary);
 }
 
 .navbar-left {
@@ -418,6 +474,24 @@
 
   .user-info {
     display: none;
+  }
+
+  /* Show navbar search on mobile when scrolled (between brand and right section) */
+  .navbar-scrolled .navbar-center {
+    display: flex;
+  }
+
+  .navbar-scrolled .navbar-center .nav-categories-dropdown,
+  .navbar-scrolled .navbar-center .nav-link {
+    display: none;
+  }
+
+  .navbar-scrolled .navbar-search-visible {
+    max-width: 160px;
+  }
+
+  .navbar-scrolled .navbar-search input {
+    width: 160px;
   }
 }
 

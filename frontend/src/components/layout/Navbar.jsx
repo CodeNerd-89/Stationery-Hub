@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
+import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { categoriesAPI } from '../../services/api';
@@ -13,6 +13,7 @@ import {
   HiOutlineViewGrid,
   HiOutlineUser,
   HiOutlineDocumentText,
+  HiOutlineSearch,
 } from 'react-icons/hi';
 import './Navbar.css';
 
@@ -21,9 +22,48 @@ const Navbar = ({ onMenuToggle }) => {
   const { totalItems } = useCart();
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [categories, setCategories] = useState([]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [navSearch, setNavSearch] = useState('');
+
+  // Sync navbar search with URL search param when on catalog page
+  useEffect(() => {
+    if (location.pathname === '/catalog') {
+      setNavSearch(searchParams.get('search') || '');
+    }
+  }, [location.pathname, searchParams]);
+
+  // Detect scroll position to show/hide navbar search
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 200);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const handleNavSearch = useCallback((e) => {
+    if (e.key === 'Enter' && navSearch.trim()) {
+      navigate(`/catalog?search=${encodeURIComponent(navSearch.trim())}`);
+    }
+  }, [navSearch, navigate]);
+
+  const handleNavSearchChange = (e) => {
+    setNavSearch(e.target.value);
+    // If already on catalog, update search in real-time via URL
+    if (location.pathname === '/catalog') {
+      const params = new URLSearchParams(searchParams);
+      if (e.target.value) {
+        params.set('search', e.target.value);
+      } else {
+        params.delete('search');
+      }
+      navigate(`/catalog?${params.toString()}`, { replace: true });
+    }
+  };
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -57,7 +97,7 @@ const Navbar = ({ onMenuToggle }) => {
 
   return (
     <>
-      <nav className="navbar">
+      <nav className={`navbar ${scrolled ? 'navbar-scrolled' : ''}`}>
         <div className="navbar-left">
           <button className="navbar-menu-btn" onClick={handleMenuClick}>
             {mobileMenuOpen ? <HiOutlineX /> : <HiOutlineMenu />}
@@ -69,6 +109,19 @@ const Navbar = ({ onMenuToggle }) => {
         </div>
 
         <div className="navbar-center">
+          {/* Navbar Search — visible when scrolled */}
+          <div className={`navbar-search ${scrolled ? 'navbar-search-visible' : ''}`}>
+            <HiOutlineSearch className="navbar-search-icon" />
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={navSearch}
+              onChange={handleNavSearchChange}
+              onKeyDown={handleNavSearch}
+              id="navbar-search"
+            />
+          </div>
+
           {/* Categories Dropdown */}
           <div className="nav-categories-dropdown"
             onMouseEnter={() => setDropdownOpen(true)}

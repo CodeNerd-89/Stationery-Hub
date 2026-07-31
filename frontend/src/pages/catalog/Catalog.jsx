@@ -35,6 +35,11 @@ const Catalog = () => {
     if (categoryParam) {
       setSelectedCategory(categoryParam);
     }
+    // Sync search from URL param (set by navbar search)
+    const searchParam = searchParams.get('search');
+    if (searchParam !== null) {
+      setSearch(searchParam);
+    }
   }, [searchParams]);
 
   const fetchWishlistIds = async () => {
